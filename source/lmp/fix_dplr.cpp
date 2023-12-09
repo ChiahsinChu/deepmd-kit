@@ -17,6 +17,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pppm_dplr.h"
+#include "pppm_dplr_gpu.h"
 #include "update.h"
 #include "variable.h"
 
@@ -562,7 +563,10 @@ void FixDPLR::post_force(int vflag) {
     update_efield_variables();
   }
 
-  PPPMDPLR *pppm_dplr = (PPPMDPLR *)force->kspace_match("pppm/dplr", 1);
+  PPPMDPLRGPU *pppm_dplr = (PPPMDPLRGPU *)force->kspace_match("pppm/dplr/gpu", 1);
+  if (not pppm_dplr) {
+    PPPMDPLR *pppm_dplr = (PPPMDPLR *)force->kspace_match("pppm/dplr", 1);
+  }
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
   int nall = nlocal + nghost;

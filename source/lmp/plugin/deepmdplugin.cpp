@@ -10,6 +10,7 @@
 #include "version.h"
 #if LAMMPS_VERSION_NUMBER >= 20220328
 #include "pppm_dplr.h"
+#include "pppm_dplr_gpu.h"
 #endif
 
 using namespace LAMMPS_NS;
@@ -26,6 +27,7 @@ static Fix *fixdplr(LAMMPS *lmp, int narg, char **arg) {
 
 #if LAMMPS_VERSION_NUMBER >= 20220328
 static KSpace *pppmdplr(LAMMPS *lmp) { return new PPPMDPLR(lmp); }
+static KSpace *pppmdplrgpu(LAMMPS *lmp) { return new PPPMDPLRGPU(lmp); }
 #endif
 
 extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc) {
@@ -59,6 +61,12 @@ extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc) {
   plugin.name = "pppm/dplr";
   plugin.info = "kspace pppm/dplr " STR_GIT_SUMM;
   plugin.creator.v1 = (lammpsplugin_factory1 *)&pppmdplr;
+  (*register_plugin)(&plugin, lmp);
+
+  plugin.style = "kspace";
+  plugin.name = "pppm/dplr/gpu";
+  plugin.info = "kspace pppm/dplr/gpu " STR_GIT_SUMM;
+  plugin.creator.v1 = (lammpsplugin_factory1 *)&pppmdplrgpu;
   (*register_plugin)(&plugin, lmp);
 #endif
 }
