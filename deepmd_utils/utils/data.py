@@ -123,6 +123,8 @@ class DeepmdData:
         self.add("coord", 3, atomic=True, must=True)
         # the training times of each frame
         self.add("numb_copy", 1, must=False, default=1, dtype=int)
+        # add macro E-field
+        self.add("ext_efield", 3, must=False, default=0.0)
         # set counters
         self.set_count = 0
         self.iterator = 0

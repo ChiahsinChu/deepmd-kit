@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 import os
+import logging
 from typing import (
     List,
     Tuple,
@@ -30,6 +31,7 @@ from deepmd.utils.sess import (
     run_sess,
 )
 
+log = logging.getLogger(__name__)
 
 class DipoleChargeModifier(DeepDipole):
     """Parameters
@@ -220,6 +222,7 @@ class DipoleChargeModifier(DeepDipole):
         coord: np.ndarray,
         box: np.ndarray,
         atype: np.ndarray,
+        ext_efield: np.ndarray = None,
         eval_fv: bool = True,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Evaluate the modification.
@@ -263,16 +266,32 @@ class DipoleChargeModifier(DeepDipole):
         all_coord, all_charge, dipole = self._extend_system(coord, box, atype, charge)
 
         # print('compute er')
+        if ext_efield is None:
+            ext_efield = np.zeros([nframes, 3])
+        else:
+            ext_efield = ext_efield.reshape([nframes, 3])
         batch_size = 5
         tot_e = []
         all_f = []
         all_v = []
         for ii in range(0, nframes, batch_size):
-            e, f, v = self.er.eval(
-                all_coord[ii : ii + batch_size],
-                all_charge[ii : ii + batch_size],
-                box[ii : ii + batch_size],
-            )
+            _coord = all_coord[ii : ii + batch_size]
+            _charge = all_charge[ii : ii + batch_size]
+            _box = box[ii : ii + batch_size]
+            e, f, v = self.er.eval(_coord,_charge,_box)
+            _nframes = _coord.shape[0]
+            # add dipole-field interaction
+            _ext_efield = ext_efield[ii : ii + batch_size]
+            # nframe * 3
+            # dipole in eA
+            # nframe * nat * 1
+            _charge = np.reshape(_charge, [_nframes, -1, 1])
+            _dipole = np.sum(_coord.reshape(_nframes, -1, 3) * _charge, axis=1)
+            e -= np.sum(_dipole * _ext_efield, axis=-1)
+            _ext_efield = np.reshape(_ext_efield, [_nframes, 1, 3])
+            # nframe * nat * 3
+            corr_f = _ext_efield * _charge
+            f +=  corr_f.reshape(_nframes, -1)
             tot_e.append(e)
             all_f.append(f)
             all_v.append(v)
@@ -436,10 +455,34 @@ class DipoleChargeModifier(DeepDipole):
         box = data["box"][:get_nframes, :]
         atype = data["type"][:get_nframes, :]
         atype = atype[0]
-        nframes = coord.shape[0]
-
-        tot_e, tot_f, tot_v = self.eval(coord, box, atype)
-
+        ext_efield = data["ext_efield"][:get_nframes, :]
+        
+        e_flag = True
+        f_flag = True
+        v_flag = True
+        if "find_energy" in data and data["find_energy"] == 1.0:
+            e_flag = False
+            if "find_modifier_energy" in data and data["find_modifier_energy"] == 1.0:
+                tot_e = data["modifier_energy"][:get_nframes]
+                e_flag = True
+        if "find_force" in data and data["find_force"] == 1.0:
+            f_flag = False
+            if "find_modifier_force" in data and data["find_modifier_force"] == 1.0:
+                tot_f = data["modifier_force"][:get_nframes, :]
+                f_flag = True
+        if "find_virial" in data and data["find_virial"] == 1.0:
+            v_flag = False
+            if "find_modifier_virial" in data and data["find_modifier_virial"] == 1.0:
+                tot_v = data["modifier_virial"][:get_nframes, :]
+                v_flag = True
+        
+        if e_flag and f_flag and v_flag:
+            log.info("Read modifier data from file")
+            if self.force is None:
+                self.force, self.virial, self.av = self.build_fv_graph()
+        else:
+            tot_e, tot_f, tot_v = self.eval(coord, box, atype, ext_efield)
+        
         # print(tot_f[:,0])
 
         if "find_energy" in data and data["find_energy"] == 1.0:

@@ -114,6 +114,7 @@ class EnerStdLoss(Loss):
         # data required
         add_data_requirement("energy", 1, atomic=False, must=False, high_prec=True)
         add_data_requirement("force", 3, atomic=True, must=False, high_prec=False)
+        add_data_requirement("force_mask", 3, atomic=True, must=False, high_prec=False, default=1.0)
         add_data_requirement("virial", 9, atomic=False, must=False, high_prec=False)
         add_data_requirement("atom_ener", 1, atomic=True, must=False, high_prec=False)
         add_data_requirement(
@@ -138,6 +139,9 @@ class EnerStdLoss(Loss):
                 high_prec=False,
                 default=1.0,
             )
+        add_data_requirement("modifier_energy", 1, atomic=False, must=False, high_prec=True)
+        add_data_requirement("modifier_force", 3, atomic=True, must=False, high_prec=False)
+        add_data_requirement("modifier_virial", 9, atomic=False, must=False, high_prec=False)
 
     def build(self, learning_rate, natoms, model_dict, label_dict, suffix):
         energy = model_dict["energy"]
@@ -157,7 +161,8 @@ class EnerStdLoss(Loss):
         if self.has_gf:
             drdq = label_dict["drdq"]
             find_drdq = label_dict["find_drdq"]
-
+        force_mask = label_dict["force_mask"]
+        
         if self.enable_atom_ener_coeff:
             # when ener_coeff (\nu) is defined, the energy is defined as
             # E = \sum_i \nu_i E_i
@@ -178,7 +183,8 @@ class EnerStdLoss(Loss):
         if self.has_f or self.has_pf or self.relative_f or self.has_gf:
             force_reshape = tf.reshape(force, [-1])
             force_hat_reshape = tf.reshape(force_hat, [-1])
-            diff_f = force_hat_reshape - force_reshape
+            force_mask_reshape = tf.reshape(force_mask, [-1])
+            diff_f = (force_hat_reshape - force_reshape) * force_mask_reshape
 
         if self.relative_f is not None:
             force_hat_3 = tf.reshape(force_hat, [-1, 3])
