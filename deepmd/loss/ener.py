@@ -142,7 +142,8 @@ class EnerStdLoss(Loss):
         add_data_requirement("modifier_energy", 1, atomic=False, must=False, high_prec=True)
         add_data_requirement("modifier_force", 3, atomic=True, must=False, high_prec=False)
         add_data_requirement("modifier_virial", 9, atomic=False, must=False, high_prec=False)
-
+        add_data_requirement("modifier_charge", 1, atomic=True, must=False, high_prec=True)
+        
     def build(self, learning_rate, natoms, model_dict, label_dict, suffix):
         energy = model_dict["energy"]
         force = model_dict["force"]
