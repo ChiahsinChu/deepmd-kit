@@ -329,8 +329,8 @@ class DeepPot(DeepEval):
         aparam: Optional[np.ndarray] = None,
         efield: Optional[np.ndarray] = None,
         ext_efield: Optional[np.ndarray] = None,
-        mixed_type: bool = False,
         modifier_charge: Optional[np.ndarray] = None,
+        mixed_type: bool = False,
     ) -> Tuple[np.ndarray, ...]:
         """Evaluate the energy, force and virial by using this DP.
 

@@ -223,8 +223,8 @@ class DipoleChargeModifier(DeepDipole):
         box: np.ndarray,
         atype: np.ndarray,
         ext_efield: np.ndarray = None,
-        eval_fv: bool = True,
         modifier_charge: np.ndarray = None,
+        eval_fv: bool = True,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Evaluate the modification.
 
@@ -267,7 +267,6 @@ class DipoleChargeModifier(DeepDipole):
         else:
             modifier_charge = modifier_charge[:, imap]
         charge += modifier_charge
-        # print(charge)
 
         # add wfcc
         all_coord, all_charge, dipole = self._extend_system(coord, box, atype, charge)
