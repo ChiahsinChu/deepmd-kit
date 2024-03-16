@@ -224,6 +224,7 @@ class DipoleChargeModifier(DeepDipole):
         atype: np.ndarray,
         ext_efield: np.ndarray = None,
         modifier_charge: np.ndarray = None,
+        modifier_coord: np.ndarray = None,
         eval_fv: bool = True,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Evaluate the modification.
@@ -262,14 +263,16 @@ class DipoleChargeModifier(DeepDipole):
         for ii in range(natoms):
             charge[ii] = self.sys_charge_map[atype[ii]]
         charge = np.tile(charge, [nframes, 1])
-        if modifier_charge is None:
-            modifier_charge = np.zeros([nframes, natoms])
-        else:
+        if modifier_charge is not None:
             modifier_charge = modifier_charge[:, imap]
-        charge += modifier_charge
+            charge += modifier_charge
 
         # add wfcc
         all_coord, all_charge, dipole = self._extend_system(coord, box, atype, charge)
+        if modifier_charge is not None:
+            modifier_coord = np.reshape(modifier_coord, [nframes, -1, 3])
+            modifier_coord = modifier_coord[:, imap, :].reshape(nframes, -1)
+            all_coord[:, :modifier_coord.shape[1]] += modifier_coord
 
         # print('compute er')
         if ext_efield is None:
@@ -463,6 +466,7 @@ class DipoleChargeModifier(DeepDipole):
         atype = atype[0]
         ext_efield = data["ext_efield"][:get_nframes, :]
         modifier_charge = data["modifier_charge"][:get_nframes, :]
+        modifier_coord = data["modifier_coord"][:get_nframes, :]
         
         e_flag = True
         f_flag = True
@@ -488,7 +492,7 @@ class DipoleChargeModifier(DeepDipole):
             if self.force is None:
                 self.force, self.virial, self.av = self.build_fv_graph()
         else:
-            tot_e, tot_f, tot_v = self.eval(coord, box, atype, ext_efield, modifier_charge)
+            tot_e, tot_f, tot_v = self.eval(coord, box, atype, ext_efield, modifier_charge, modifier_coord)
         
         # print(tot_f[:,0])
 
