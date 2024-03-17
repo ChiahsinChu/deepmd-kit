@@ -80,6 +80,11 @@ class FixDPLR : public Fix {
   void update_efield_variables();
   enum { NONE, CONSTANT, EQUAL };
   std::vector<int> type_idx_map;
+
+  bool potential_flag;
+  int axis;
+  double grid_width;
+  std::vector<double> elec_phi;
 };
 }  // namespace LAMMPS_NS
 

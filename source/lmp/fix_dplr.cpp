@@ -30,6 +30,8 @@ static bool is_key(const string &input) {
   keys.push_back("type_associate");
   keys.push_back("bond_type");
   keys.push_back("efield");
+  keys.push_back("potential");
+  keys.push_back("axis");
   for (int ii = 0; ii < keys.size(); ++ii) {
     if (input == keys[ii]) {
       return true;
@@ -71,6 +73,9 @@ FixDPLR::FixDPLR(LAMMPS *lmp, int narg, char **arg)
   int iarg = 3;
   vector<int> map_vec;
   bond_type.clear();
+  axis = 2;
+  potential_flag = false;
+  string fname;
   while (iarg < narg) {
     if (!is_key(arg[iarg])) {
       error->all(FLERR, "Illegal fix command\nwrong number of parameters\n");
@@ -123,6 +128,19 @@ FixDPLR::FixDPLR(LAMMPS *lmp, int narg, char **arg)
       }
       sort(bond_type.begin(), bond_type.end());
       iarg = iend;
+    } else if (string(arg[iarg]) == string("potential")) {
+      if (iarg + 1 > narg) {
+        error->all(FLERR, "Illegal fix adapt command");
+      }
+      fname = string(arg[iarg + 1]);
+      potential_flag = true;
+      iarg += 2;
+    } else if (string(arg[iarg]) == string("axis")) {
+      if (iarg + 1 > narg) {
+        error->all(FLERR, "Illegal fix adapt command");
+      }
+      axis = atoi(arg[iarg + 1]);
+      iarg += 2;
     } else {
       break;
     }
@@ -208,6 +226,19 @@ FixDPLR::FixDPLR(LAMMPS *lmp, int narg, char **arg)
 
   // set comm size needed by this fix
   comm_reverse = 3;
+
+  if (potential_flag) {
+    // read data into vector elec_phi from fname
+    ifstream file(fname, ios::in);
+    if (!file.is_open()) {
+      error->all(FLERR, "Cannot open file " + fname);
+    }
+    string line;
+    while (getline(file, line)) {
+      elec_phi.push_back(stod(line));
+    }
+    file.close();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -216,6 +247,9 @@ FixDPLR::~FixDPLR() {
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;
+
+  elec_phi.clear();
+  elec_phi.resize(0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -299,6 +333,10 @@ void FixDPLR::init() {
   } else {
     varflag = CONSTANT;
   }
+
+  double lo = domain->boxlo[axis];
+  double hi = domain->boxhi[axis];
+  grid_width = (hi - lo) / elec_phi.size();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -608,6 +646,15 @@ void FixDPLR::post_force(int vflag) {
       double tmpf[3];
       for (int dd = 0; dd < 3; ++dd) {
         tmpf[dd] = q[ii] * efield[dd] * force->qe2f;
+      }
+      if (potential_flag) {
+        // add force to atom i
+        int idx = (int)(x[ii][axis] / grid_width);
+        if (idx >= elec_phi.size())
+        {
+          idx = elec_phi.size() - 1;
+        }
+        tmpf[axis] += q[ii] * elec_phi[idx] * force->qe2f;
       }
       for (int dd = 0; dd < 3; ++dd) {
         dfele[ii * 3 + dd] += tmpf[dd];
