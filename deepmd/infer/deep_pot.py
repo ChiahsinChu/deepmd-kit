@@ -331,6 +331,7 @@ class DeepPot(DeepEval):
         ext_efield: Optional[np.ndarray] = None,
         modifier_charge: Optional[np.ndarray] = None,
         modifier_coord: Optional[np.ndarray] = None,
+        modifier_efield: Optional[np.ndarray] = None,
         mixed_type: bool = False,
     ) -> Tuple[np.ndarray, ...]:
         """Evaluate the energy, force and virial by using this DP.
@@ -399,7 +400,7 @@ class DeepPot(DeepEval):
         if self.modifier_type is not None:
             if atomic:
                 raise RuntimeError("modifier does not support atomic modification")
-            me, mf, mv = self.dm.eval(coords, cells, atom_types, ext_efield, modifier_charge, modifier_coord)
+            me, mf, mv = self.dm.eval(coords, cells, atom_types, ext_efield, modifier_charge, modifier_coord, modifier_efield)
             output = list(output)  # tuple to list
             e, f, v = output[:3]
             output[0] += me.reshape(e.shape)
