@@ -306,10 +306,11 @@ class DipoleChargeModifier(DeepDipole):
             _dipole = np.sum(_coord.reshape(_nframes, -1, 3) * _charge, axis=1)
             e -= np.sum(_dipole * _ext_efield, axis=-1)
             _ext_efield = np.reshape(_ext_efield, [_nframes, 1, 3])
-            _efield = np.reshape(_ext_efield, [_nframes, -1, 3])
+            _efield = np.reshape(_efield, [_nframes, -1, 3])
             # nframe * nat * 3
             corr_f = _ext_efield * _charge
-            corr_f = _efield * _charge
+            corr_f += _efield * _charge
+            # print(corr_f)
             f +=  corr_f.reshape(_nframes, -1)
             tot_e.append(e)
             all_f.append(f)
