@@ -17,6 +17,8 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pppm_dplr.h"
+#include "pppm_electrode_dplr.h"
+#include "pair_coul_long_dplr.h"
 #include "update.h"
 #include "variable.h"
 
@@ -601,6 +603,9 @@ void FixDPLR::post_force(int vflag) {
   }
 
   PPPMDPLR *pppm_dplr = (PPPMDPLR *)force->kspace_match("pppm/dplr", 1);
+  PPPMElectrodeDPLR *pppm_electrode_dplr = (PPPMElectrodeDPLR *)force->kspace_match("pppm/electrode/dplr", 1);
+  PairCoulLongDPLR *pair_coul_long_dplr =
+      (PairCoulLongDPLR *)force->pair_match("coul/long/dplr", 1);
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
   int nall = nlocal + nghost;
@@ -630,6 +635,20 @@ void FixDPLR::post_force(int vflag) {
     // revise force according to efield
     if (pppm_dplr) {
       const vector<double> &dfele_(pppm_dplr->get_fele());
+      assert(dfele_.size() == nlocal * 3);
+      for (int ii = 0; ii < nlocal * 3; ++ii) {
+        dfele[ii] += dfele_[ii];
+      }
+    }
+    if (pppm_electrode_dplr) {
+      const vector<double> &dfele_(pppm_electrode_dplr->get_fele());
+      assert(dfele_.size() == nlocal * 3);
+      for (int ii = 0; ii < nlocal * 3; ++ii) {
+        dfele[ii] += dfele_[ii];
+      }
+    }
+    if (pair_coul_long_dplr) {
+      const vector<double> &dfele_(pair_coul_long_dplr->get_fele());
       assert(dfele_.size() == nlocal * 3);
       for (int ii = 0; ii < nlocal * 3; ++ii) {
         dfele[ii] += dfele_[ii];
