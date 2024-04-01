@@ -263,6 +263,7 @@ int FixDPLR::setmask() {
   mask |= THERMO_ENERGY;
 #endif
   mask |= POST_INTEGRATE;
+  mask |= POST_NEIGHBOR;
   mask |= PRE_FORCE;
   mask |= POST_FORCE;
   mask |= MIN_PRE_EXCHANGE;
@@ -343,7 +344,9 @@ void FixDPLR::init() {
 
 /* ---------------------------------------------------------------------- */
 
-void FixDPLR::setup_pre_force(int vflag) { pre_force(vflag); }
+void FixDPLR::setup_pre_force(int vflag) { 
+  // pre_force(vflag); 
+  }
 
 /* ---------------------------------------------------------------------- */
 
@@ -363,6 +366,93 @@ void FixDPLR::setup(int vflag) {
 /* ---------------------------------------------------------------------- */
 
 void FixDPLR::min_setup(int vflag) { setup(vflag); }
+
+void FixDPLR::setup_post_neighbor() {
+  // std::cout << "dplr: setup_post_neighbor" << std::endl;
+  double **x = atom->x;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+  int nghost = atom->nghost;
+  int nall = nlocal + nghost;
+
+  // if (eflag_atom) {
+  //   error->all(FLERR,"atomic energy calculation is not supported by this
+  //   fix\n");
+  // }
+
+  // declear inputs
+  vector<int> dtype(nall);
+  vector<FLOAT_PREC> dbox(9, 0);
+  vector<FLOAT_PREC> dcoord(nall * 3, 0.);
+  // get type
+  for (int ii = 0; ii < nall; ++ii) {
+    dtype[ii] = type_idx_map[type[ii] - 1];
+  }
+  // get box
+  dbox[0] = domain->h[0] / dist_unit_cvt_factor;  // xx
+  dbox[4] = domain->h[1] / dist_unit_cvt_factor;  // yy
+  dbox[8] = domain->h[2] / dist_unit_cvt_factor;  // zz
+  dbox[7] = domain->h[3] / dist_unit_cvt_factor;  // zy
+  dbox[6] = domain->h[4] / dist_unit_cvt_factor;  // zx
+  dbox[3] = domain->h[5] / dist_unit_cvt_factor;  // yx
+  // get coord
+  for (int ii = 0; ii < nall; ++ii) {
+    for (int dd = 0; dd < 3; ++dd) {
+      dcoord[ii * 3 + dd] =
+          (x[ii][dd] - domain->boxlo[dd]) / dist_unit_cvt_factor;
+    }
+  }
+  // get lammps nlist
+  NeighList *list = pair_deepmd->list;
+  deepmd_compat::InputNlist lmp_list(list->inum, list->ilist, list->numneigh,
+                                     list->firstneigh);
+  // declear output
+  vector<FLOAT_PREC> tensor;
+  // compute
+  try {
+    dpt.compute(tensor, dcoord, dtype, dbox, nghost, lmp_list);
+  } catch (deepmd_compat::deepmd_exception &e) {
+    error->one(FLERR, e.what());
+  }
+
+  vector<int> sel_fwd, sel_bwd;
+  int sel_nghost;
+  deepmd_compat::select_by_type(sel_fwd, sel_bwd, sel_nghost, dcoord, dtype,
+                                nghost, sel_type);
+  int sel_nall = sel_bwd.size();
+  int sel_nloc = sel_nall - sel_nghost;
+  vector<int> sel_type(sel_bwd.size());
+  deepmd_compat::select_map<int>(sel_type, dtype, sel_fwd, 1);
+
+  // Yixiao: because the deeptensor already return the correct order, the
+  // following map is no longer needed deepmd_compat::AtomMap<FLOAT_PREC>
+  // atom_map(sel_type.begin(), sel_type.begin() + sel_nloc); const
+  // vector<int> & sort_fwd_map(atom_map.get_fwd_map());
+
+  vector<pair<int, int> > valid_pairs;
+  get_valid_pairs(valid_pairs);
+
+  int odim = dpt.output_dim();
+  assert(odim == 3);
+  dipole_recd.resize(static_cast<size_t>(nall) * 3);
+  fill(dipole_recd.begin(), dipole_recd.end(), 0.0);
+  for (int ii = 0; ii < valid_pairs.size(); ++ii) {
+    int idx0 = valid_pairs[ii].first;
+    int idx1 = valid_pairs[ii].second;
+    assert(idx0 < sel_fwd.size());  // && sel_fwd[idx0] < sort_fwd_map.size());
+    // Yixiao: the sort map is no longer needed
+    // int res_idx = sort_fwd_map[sel_fwd[idx0]];
+    int res_idx = sel_fwd[idx0];
+    // int ret_idx = dpl_bwd[res_idx];
+    for (int dd = 0; dd < 3; ++dd) {
+      x[idx1][dd] =
+          x[idx0][dd] + tensor[res_idx * 3 + dd] * dist_unit_cvt_factor;
+      // res_buff[idx1 * odim + dd] = tensor[res_idx * odim + dd];
+      dipole_recd[idx0 * 3 + dd] =
+          tensor[res_idx * 3 + dd] * dist_unit_cvt_factor;
+    }
+  }
+}
 
 /* ---------------------------------------------------------------------- */
 
