@@ -7,6 +7,9 @@ from typing import (
 )
 
 import numpy as np
+from scipy import constants, special
+from ase.geometry.cell import cell_to_cellpar
+from MDAnalysis.lib.distances import distance_array, minimize_vectors
 
 import deepmd.op  # noqa: F401
 from deepmd.common import (
@@ -32,6 +35,16 @@ from deepmd.utils.sess import (
 )
 
 log = logging.getLogger(__name__)
+
+EPSILON = constants.epsilon_0 / constants.elementary_charge * constants.angstrom
+qqrd2e = 1 / (4 * np.pi * EPSILON)
+EWALD_F = 1.12837917
+EWALD_P = 0.3275911
+A1 = 0.254829592
+A2 = -0.284496736
+A3 = 1.421413741
+A4 = -1.453152027
+A5 = 1.061405429
 
 class DipoleChargeModifier(DeepDipole):
     """Parameters
@@ -227,6 +240,7 @@ class DipoleChargeModifier(DeepDipole):
         modifier_coord: np.ndarray = None,
         modifier_efield: np.ndarray = None,
         eval_fv: bool = True,
+        coul_long: bool = False,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """Evaluate the modification.
 
@@ -321,6 +335,21 @@ class DipoleChargeModifier(DeepDipole):
         # print('finish  er')
         # reshape
         tot_e.reshape([nframes, 1])
+        
+        if coul_long:
+            coul_long_e = []
+            coul_long_f = []
+            _modifier_charge = np.zeros(all_charge.shape[1])
+            _modifier_charge[:len(atype)] = modifier_charge.reshape(-1)
+            atype_mask = np.abs(_modifier_charge) > 1e-10
+            for ii in range(nframes):
+                e, f = self.calc_coul_long(all_coord[ii], box[ii], all_charge[ii], atype_mask)
+                coul_long_e.append(e)
+                coul_long_f.append(f)
+            coul_long_e = np.reshape(coul_long_e, tot_e.shape)
+            coul_long_f = np.reshape(coul_long_f, all_f.shape)
+            tot_e += coul_long_e
+            all_f += coul_long_f
 
         tot_f = None
         tot_v = None
@@ -444,6 +473,29 @@ class DipoleChargeModifier(DeepDipole):
         all_efield = np.concatenate((modifier_efield, wfcc_efield), axis=1)
         return all_coord, all_charge, dipole, all_efield
 
+    def calc_coul_long(self, coords, box, charges, atype_mask):
+        cellpar = cell_to_cellpar(box.reshape(3, 3))
+        coords = coords.reshape(-1, 3)
+        dist_mat = distance_array(coords, coords, box=cellpar)
+        nat = len(coords)
+        forces = np.zeros((nat, 3))
+        energy = 0.0
+        for ii in range(nat):
+            force_mask = (dist_mat[ii] < self.rcut) & (np.arange(nat) > ii) & atype_mask
+            sel_ids = np.where(force_mask)[0]
+            prefactor = qqrd2e * charges[ii] * charges[sel_ids] / dist_mat[ii][sel_ids]
+            grij = self.ewald_beta * dist_mat[ii][sel_ids]
+            expm2 = np.exp(-grij * grij)
+            t = 1.0 / (1.0 + EWALD_P * grij)
+            erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2
+            forcecoul = prefactor * (erfc + EWALD_F * grij * expm2)
+            fpair = forcecoul / dist_mat[ii][sel_ids] ** 2
+            delta_x = minimize_vectors(coords[ii].reshape(1, 3) - coords[sel_ids], box=cellpar)
+            forces[ii] += np.sum(delta_x * fpair.reshape(-1, 1), axis=0)
+            forces[sel_ids] -= delta_x * fpair.reshape(-1, 1)
+            energy += np.sum(prefactor * erfc)
+        return energy, forces
+    
     def modify_data(self, data: dict, data_sys: DeepmdData) -> None:
         """Modify data.
 
