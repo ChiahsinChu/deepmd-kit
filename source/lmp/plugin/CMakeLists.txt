@@ -61,7 +61,7 @@ if(DEFINED LAMMPS_SOURCE_ROOT OR DEFINED LAMMPS_VERSION)
     ${LAMMPS_SOURCE_ROOT}/src/KSPACE/remap_wrap.cpp
     ${LAMMPS_SOURCE_ROOT}/src/KSPACE/pair_coul_long.cpp
     ${LAMMPS_SOURCE_ROOT}/src/pair.cpp
-    ${LAMMPS_SOURCE_ROOT}/src/ELECTRODE/pppm_electrode.cpp)
+    ${LAMMPS_SOURCE_ROOT}/src/ELECTRODE/*.cpp)
   if(LAMMPS_VERSION_NUMBER GREATER 20210831)
     list(APPEND LMP_SRC ${LAMMPS_SOURCE_ROOT}/src/EXTRA-FIX/fix_ttm.cpp
     )# for ttm

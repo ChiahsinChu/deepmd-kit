@@ -12,6 +12,7 @@
 #include "pppm_dplr.h"
 #include "pppm_electrode_dplr.h"
 #include "pair_coul_long_dplr.h"
+#include "fix_electrode_conp_dplr.h"
 #endif
 
 using namespace LAMMPS_NS;
@@ -30,6 +31,9 @@ static Fix *fixdplr(LAMMPS *lmp, int narg, char **arg) {
 static KSpace *pppmdplr(LAMMPS *lmp) { return new PPPMDPLR(lmp); }
 static KSpace *pppmelectrodedplr(LAMMPS *lmp) { return new PPPMElectrodeDPLR(lmp); }
 static Pair *paircoullongdplr(LAMMPS *lmp) { return new PairCoulLongDPLR(lmp); }
+static Fix *fixelectrodeconpdplr(LAMMPS *lmp, int narg, char **arg) {
+  return new FixElectrodeConpDPLR(lmp, narg, arg);
+}
 #endif
 
 extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc) {
@@ -75,6 +79,12 @@ extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc) {
   plugin.name = "coul/long/dplr";
   plugin.info = "pair coul/long/dplr " STR_GIT_SUMM;
   plugin.creator.v1 = (lammpsplugin_factory1 *)&paircoullongdplr;
+  (*register_plugin)(&plugin, lmp);
+
+  plugin.style = "fix";
+  plugin.name = "electrode/conp/dplr";
+  plugin.info = "fix electrode/conp/dplr " STR_GIT_SUMM;
+  plugin.creator.v2 = (lammpsplugin_factory2 *)&fixelectrodeconpdplr;
   (*register_plugin)(&plugin, lmp);
 #endif
 }
