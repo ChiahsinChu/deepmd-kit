@@ -58,9 +58,6 @@ from .make_hessian_model import (
 from .make_model import (
     make_model,
 )
-from .make_multi_fitting_model import (
-    make_multi_fitting_model,
-)
 from .model import (
     BaseModel,
 )
@@ -281,5 +278,4 @@ __all__ = [
     "MultiFittingTestModel",
     "make_model",
     "make_hessian_model",
-    "make_multi_fitting_model",
 ]

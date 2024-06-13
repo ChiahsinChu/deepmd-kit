@@ -13,15 +13,11 @@ from deepmd.dpmodel import (
     get_deriv_name,
     get_reduce_name,
 )
-from deepmd.pt.utils.nlist import (
-    extend_input_and_build_neighbor_list,
-)
 
 from .dp_multi_fitting_model import (
     DPMultiFittingModel,
 )
 from .transform_output import (
-    communicate_extended_output,
     fit_output_to_model_output,
 )
 
@@ -39,7 +35,7 @@ class MultiFittingTestModel(DPMultiFittingModel):
     def model_output_def(self):
         """Get the output def for the model.
 
-        Default output is defined in deepmd.pt.model.model.make_multi_fitting_model.make_multi_fitting_model as:
+        Default output is defined in deepmd.pt.model.model.make_model.make_model as:
             ModelOutputDef(self.atomic_output_def())
         Here we are interested in the sum of the components, so the redefinition of the model output is necessary.
         """
@@ -118,75 +114,6 @@ class MultiFittingTestModel(DPMultiFittingModel):
                 model_predict["extended_virial"] = model_ret["energy_derv_c"].squeeze(
                     -3
                 )
-        return model_predict
-
-    def forward_common(
-        self,
-        coord,
-        atype,
-        box: Optional[torch.Tensor] = None,
-        fparam: Optional[torch.Tensor] = None,
-        aparam: Optional[torch.Tensor] = None,
-        do_atomic_virial: bool = False,
-    ) -> Dict[str, torch.Tensor]:
-        """Return model prediction.
-
-        Parameters
-        ----------
-        coord
-            The coordinates of the atoms.
-            shape: nf x (nloc x 3)
-        atype
-            The type of atoms. shape: nf x nloc
-        box
-            The simulation box. shape: nf x 9
-        fparam
-            frame parameter. nf x ndf
-        aparam
-            atomic parameter. nf x nloc x nda
-        do_atomic_virial
-            If calculate the atomic virial.
-
-        Returns
-        -------
-        ret_dict
-            The result dict of type Dict[str,torch.Tensor].
-            The keys are defined by the `ModelOutputDef`.
-
-        """
-        cc, bb, fp, ap, input_prec = self.input_type_cast(
-            coord, box=box, fparam=fparam, aparam=aparam
-        )
-        del coord, box, fparam, aparam
-        (
-            extended_coord,
-            extended_atype,
-            mapping,
-            nlist,
-        ) = extend_input_and_build_neighbor_list(
-            cc,
-            atype,
-            self.get_rcut(),
-            self.get_sel(),
-            mixed_types=self.mixed_types(),
-            box=bb,
-        )
-        model_predict_lower = self.forward_common_lower(
-            extended_coord,
-            extended_atype,
-            nlist,
-            mapping,
-            do_atomic_virial=do_atomic_virial,
-            fparam=fp,
-            aparam=ap,
-        )
-        model_predict = communicate_extended_output(
-            model_predict_lower,
-            self.model_output_def(),
-            mapping,
-            do_atomic_virial=do_atomic_virial,
-        )
-        model_predict = self.output_type_cast(model_predict, input_prec)
         return model_predict
 
     def forward_common_lower(
