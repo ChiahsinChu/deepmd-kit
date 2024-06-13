@@ -146,7 +146,7 @@ class DPMultiFittingAtomicModel(BaseAtomicModel):
         return fit_ret_dict
 
     def serialize(self) -> dict:
-        dd = super().serialize(self)
+        dd = super().serialize()
         fitting_dict = {}
         for name, fitting_net in self.fitting_net_dict.items():
             fitting_dict[name] = fitting_net.serialize()
