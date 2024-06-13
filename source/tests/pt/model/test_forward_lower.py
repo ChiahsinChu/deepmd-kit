@@ -23,6 +23,7 @@ from ...seed import (
 from .test_permutation import (  # model_dpau,
     model_dpa1,
     model_dpa2,
+    model_multi_fitting,
     model_se_e2_a,
     model_spin,
     model_zbl,
@@ -190,6 +191,13 @@ class TestEnergyModelSpinDPA2(unittest.TestCase, ForwardLowerTest):
         model_params["descriptor"]["repinit"]["nsel"] *= 2
         model_params["descriptor"]["repformer"]["nsel"] *= 2
         self.test_spin = True
+        self.model = get_model(model_params).to(env.DEVICE)
+
+
+class TestEnergyModelMultiFitting(unittest.TestCase, ForwardLowerTest):
+    def setUp(self):
+        self.prec = 1e-10
+        model_params = copy.deepcopy(model_multi_fitting)
         self.model = get_model(model_params).to(env.DEVICE)
 
 

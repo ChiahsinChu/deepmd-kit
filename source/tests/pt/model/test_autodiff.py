@@ -26,6 +26,7 @@ from .test_permutation import (
     model_dpa1,
     model_dpa2,
     model_hybrid,
+    model_multi_fitting,
     model_se_e2_a,
     model_spin,
     model_zbl,
@@ -248,4 +249,18 @@ class TestEnergyModelSpinSeAForce(unittest.TestCase, ForceTest):
         model_params = copy.deepcopy(model_spin)
         self.type_split = False
         self.test_spin = True
+        self.model = get_model(model_params).to(env.DEVICE)
+
+
+class TestEnergyModelMultiFittingForce(unittest.TestCase, ForceTest):
+    def setUp(self):
+        model_params = copy.deepcopy(model_multi_fitting)
+        self.type_split = False
+        self.model = get_model(model_params).to(env.DEVICE)
+
+
+class TestEnergyModelMultiFittingVirial(unittest.TestCase, VirialTest):
+    def setUp(self):
+        model_params = copy.deepcopy(model_multi_fitting)
+        self.type_split = False
         self.model = get_model(model_params).to(env.DEVICE)

@@ -22,6 +22,7 @@ from .test_permutation import (  # model_dpau,
     model_dpa1,
     model_dpa2,
     model_hybrid,
+    model_multi_fitting,
     model_se_e2_a,
     model_spin,
     model_zbl,
@@ -247,6 +248,14 @@ class TestEnergyModelSpinSeA(unittest.TestCase, SmoothTest):
         model_params = copy.deepcopy(model_spin)
         self.type_split = False
         self.test_spin = True
+        self.model = get_model(model_params).to(env.DEVICE)
+        self.epsilon, self.aprec = None, None
+
+
+class TestEnergyModelMultiFitting(unittest.TestCase, SmoothTest):
+    def setUp(self):
+        model_params = copy.deepcopy(model_multi_fitting)
+        self.type_split = False
         self.model = get_model(model_params).to(env.DEVICE)
         self.epsilon, self.aprec = None, None
 

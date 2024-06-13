@@ -257,6 +257,34 @@ model_hybrid = {
     "_comment": " that's all",
 }
 
+model_multi_fitting = {
+    "type_map": ["O", "H", "B"],
+    "descriptor": {
+        "type": "se_e2_a",
+        "sel": [46, 92, 4],
+        "rcut_smth": 0.50,
+        "rcut": 4.00,
+        "neuron": [25, 50, 100],
+        "resnet_dt": False,
+        "axis_neuron": 16,
+        "seed": 1,
+    },
+    "fitting_net_dict": {
+        "type": "multi_fitting_test",
+        "ener_1": {
+            "neuron": [24, 24, 24],
+            "resnet_dt": True,
+            "seed": 1,
+        },
+        "ener_2": {
+            "neuron": [24, 24, 24],
+            "resnet_dt": True,
+            "seed": 1,
+        },
+    },
+    "_comment": " that's all",
+}
+
 
 class PermutationTest:
     def test(
@@ -378,6 +406,13 @@ class TestEnergyModelSpinSeA(unittest.TestCase, PermutationTest):
         model_params = copy.deepcopy(model_spin)
         self.type_split = False
         self.test_spin = True
+        self.model = get_model(model_params).to(env.DEVICE)
+
+
+class TestEnergyModelMultiFitting(unittest.TestCase, PermutationTest):
+    def setUp(self):
+        model_params = copy.deepcopy(model_multi_fitting)
+        self.type_split = False
         self.model = get_model(model_params).to(env.DEVICE)
 
 
