@@ -165,6 +165,7 @@ def get_multi_fitting_model(model_params):
     # fitting_net_dict
     fitting_dict = {}
     fitting_net_dict = model_params.get("fitting_net_dict", {})
+    fitting_setup = fitting_net_dict.pop("fitting_setup", {})
     model_path = fitting_net_dict.pop("model_path", None)
     model_name = fitting_net_dict.pop("model_name", None)
     fitting_dict["type"] = fitting_net_dict.pop("type", None)
@@ -201,6 +202,7 @@ def get_multi_fitting_model(model_params):
         type_map=model_params["type_map"],
         atom_exclude_types=atom_exclude_types,
         pair_exclude_types=pair_exclude_types,
+        fitting_setup=fitting_setup,
     )
     model.model_def_script = json.dumps(model_params_old)
     return model

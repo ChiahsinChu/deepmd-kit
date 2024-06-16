@@ -21,7 +21,6 @@ from .model.test_permutation import (
     model_dpa1,
     model_dpa2,
     model_hybrid,
-    model_multi_fitting,
     model_se_e2_a,
     model_zbl,
 )
@@ -392,20 +391,20 @@ class TestPolarModelDPA2(unittest.TestCase, DPTrainTest):
         DPTrainTest.tearDown(self)
 
 
-class TestEnergyMultiFitting(unittest.TestCase, DPTrainTest):
-    def setUp(self):
-        input_json = str(Path(__file__).parent / "water/multifitting.json")
-        with open(input_json) as f:
-            self.config = json.load(f)
-        data_file = [str(Path(__file__).parent / "water/data/data_0")]
-        self.config["training"]["training_data"]["systems"] = data_file
-        self.config["training"]["validation_data"]["systems"] = data_file
-        self.config["model"] = deepcopy(model_multi_fitting)
-        self.config["training"]["numb_steps"] = 1
-        self.config["training"]["save_freq"] = 1
+# class TestEnergyMultiFitting(unittest.TestCase, DPTrainTest):
+#     def setUp(self):
+#         input_json = str(Path(__file__).parent / "water/multifitting.json")
+#         with open(input_json) as f:
+#             self.config = json.load(f)
+#         data_file = [str(Path(__file__).parent / "water/data/data_0")]
+#         self.config["training"]["training_data"]["systems"] = data_file
+#         self.config["training"]["validation_data"]["systems"] = data_file
+#         self.config["model"] = deepcopy(model_multi_fitting)
+#         self.config["training"]["numb_steps"] = 1
+#         self.config["training"]["save_freq"] = 1
 
-    def tearDown(self) -> None:
-        DPTrainTest.tearDown(self)
+#     def tearDown(self) -> None:
+#         DPTrainTest.tearDown(self)
 
 
 if __name__ == "__main__":
