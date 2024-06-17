@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: LGPL-3.0-or-later
 import functools
+import importlib
 import logging
 import time
 from copy import (
@@ -284,7 +285,17 @@ class Trainer:
             return lr_exp
 
         def get_loss(loss_params, start_lr, _ntypes, _model):
+            module_path = loss_params.pop("module_path", None)
+            module_name = loss_params.pop("module_name", None)
             loss_type = loss_params.get("type", "ener")
+            # read external module
+            if module_path is not None:
+                module = importlib.import_module(module_path)
+                loss_cls = getattr(module, module_name)
+                loss_params["starter_learning_rate"] = start_lr
+                return loss_cls(**loss_params)
+
+            # read internal module
             if loss_type == "ener":
                 loss_params["starter_learning_rate"] = start_lr
                 return EnergyStdLoss(**loss_params)

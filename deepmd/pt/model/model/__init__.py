@@ -166,8 +166,8 @@ def get_multi_fitting_model(model_params):
     fitting_dict = {}
     fitting_net_dict = model_params.get("fitting_net_dict", {})
     fitting_setup = fitting_net_dict.pop("fitting_setup", {})
-    model_path = fitting_net_dict.pop("model_path", None)
-    model_name = fitting_net_dict.pop("model_name", None)
+    module_path = fitting_net_dict.pop("module_path", None)
+    module_name = fitting_net_dict.pop("module_name", None)
     fitting_dict["type"] = fitting_net_dict.pop("type", None)
     for k, fitting_net in fitting_net_dict.items():
         fitting_net["type"] = fitting_net.get("type", "ener")
@@ -185,10 +185,10 @@ def get_multi_fitting_model(model_params):
     atom_exclude_types = model_params.get("atom_exclude_types", [])
     pair_exclude_types = model_params.get("pair_exclude_types", [])
 
-    if model_path is not None:
+    if module_path is not None:
         # read external model
-        module = importlib.import_module(model_path)
-        modelcls = getattr(module, model_name)
+        module = importlib.import_module(module_path)
+        modelcls = getattr(module, module_name)
     else:
         # read internal model
         if fitting_dict["type"] == "multi_fitting_test":
