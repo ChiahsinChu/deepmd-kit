@@ -588,6 +588,12 @@ void FixDPLR::pre_force(int vflag) {
   //   }
   //   cout << endl;
   // }
+
+  // re-init dfele
+  dfele.resize(nlocal * 3);
+  for (int ii = 0; ii < nlocal * 3; ++ii) {
+    dfele[ii] = 0.0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -611,8 +617,7 @@ void FixDPLR::post_force(int vflag) {
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
   int nall = nlocal + nghost;
-  vector<FLOAT_PREC> dcoord(nall * 3, 0.0), dbox(9, 0.0),
-      dfele(nlocal * 3, 0.0);
+  vector<FLOAT_PREC> dcoord(nall * 3, 0.0), dbox(9, 0.0);
   vector<int> dtype(nall, 0);
   // set values for dcoord, dbox, dfele
   {
