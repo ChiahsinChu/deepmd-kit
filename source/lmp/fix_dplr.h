@@ -57,6 +57,7 @@ class FixDPLR : public Fix {
   double compute_scalar(void) override;
   double compute_vector(int) override;
   double ener_unit_cvt_factor, dist_unit_cvt_factor, force_unit_cvt_factor;
+  std::vector<double> dfele;
 
  private:
   PairDeepMD *pair_deepmd;
