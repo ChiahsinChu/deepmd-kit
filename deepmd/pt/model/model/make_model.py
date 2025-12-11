@@ -157,6 +157,8 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
                 atomic parameter. nf x nloc x nda
             do_atomic_virial
                 If calculate the atomic virial.
+            atomic_weight
+                atomic weights for scaling outputs, shape: nf x nloc x dim_aw
 
             Returns
             -------
@@ -165,10 +167,14 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
                 The keys are defined by the `ModelOutputDef`.
 
             """
-            cc, bb, fp, ap, input_prec = self.input_type_cast(
-                coord, box=box, fparam=fparam, aparam=aparam
+            cc, bb, fp, ap, aw, input_prec = self.input_type_cast(
+                coord,
+                box=box,
+                fparam=fparam,
+                aparam=aparam,
+                atomic_weight=atomic_weight,
             )
-            del coord, box, fparam, aparam
+            del coord, box, fparam, aparam, atomic_weight
             (
                 extended_coord,
                 extended_atype,
@@ -192,7 +198,7 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
                 do_atomic_virial=do_atomic_virial,
                 fparam=fp,
                 aparam=ap,
-                atomic_weight=atomic_weight,
+                atomic_weight=aw,
             )
             model_predict = communicate_extended_output(
                 model_predict_lower,
@@ -276,6 +282,8 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
                 The data needed for communication for parallel inference.
             extra_nlist_sort
                 whether to forcibly sort the nlist.
+            atomic_weight
+                atomic weights for scaling outputs, shape: nf x nloc x dim_aw
 
             Returns
             -------
@@ -288,8 +296,11 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
             nlist = self.format_nlist(
                 extended_coord, extended_atype, nlist, extra_nlist_sort=extra_nlist_sort
             )
-            cc_ext, _, fp, ap, input_prec = self.input_type_cast(
-                extended_coord, fparam=fparam, aparam=aparam
+            cc_ext, _, fp, ap, aw, input_prec = self.input_type_cast(
+                extended_coord,
+                fparam=fparam,
+                aparam=aparam,
+                atomic_weight=atomic_weight,
             )
             del extended_coord, fparam, aparam
             atomic_ret = self.atomic_model.forward_common_atomic(
@@ -300,7 +311,7 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
                 fparam=fp,
                 aparam=ap,
                 comm_dict=comm_dict,
-                atomic_weight=atomic_weight,
+                atomic_weight=aw,
             )
             model_predict = fit_output_to_model_output(
                 atomic_ret,
@@ -319,8 +330,10 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
             box: torch.Tensor | None = None,
             fparam: torch.Tensor | None = None,
             aparam: torch.Tensor | None = None,
+            atomic_weight: torch.Tensor | None = None,
         ) -> tuple[
             torch.Tensor,
+            torch.Tensor | None,
             torch.Tensor | None,
             torch.Tensor | None,
             torch.Tensor | None,
@@ -340,14 +353,14 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
             #         )
             _lst: list[torch.Tensor | None] = [
                 vv.to(coord.dtype) if vv is not None else None
-                for vv in [box, fparam, aparam]
+                for vv in [box, fparam, aparam, atomic_weight]
             ]
-            box, fparam, aparam = _lst
+            box, fparam, aparam, atomic_weight = _lst
             if (
                 input_prec
                 == self.reverse_precision_dict[self.global_pt_float_precision]
             ):
-                return coord, box, fparam, aparam, input_prec
+                return coord, box, fparam, aparam, atomic_weight, input_prec
             else:
                 pp = self.global_pt_float_precision
                 return (
@@ -355,6 +368,7 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
                     box.to(pp) if box is not None else None,
                     fparam.to(pp) if fparam is not None else None,
                     aparam.to(pp) if aparam is not None else None,
+                    atomic_weight.to(pp) if atomic_weight is not None else None,
                     input_prec,
                 )
 
@@ -628,6 +642,7 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
             fparam: torch.Tensor | None = None,
             aparam: torch.Tensor | None = None,
             do_atomic_virial: bool = False,
+            atomic_weight: Optional[torch.Tensor] = None,
         ) -> dict[str, torch.Tensor]:
             # directly call the forward_common method when no specific transform rule
             return self.forward_common(
@@ -637,6 +652,7 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
                 fparam=fparam,
                 aparam=aparam,
                 do_atomic_virial=do_atomic_virial,
+                atomic_weight=atomic_weight,
             )
 
     return CM

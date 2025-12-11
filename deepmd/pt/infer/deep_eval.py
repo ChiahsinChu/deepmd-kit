@@ -342,6 +342,12 @@ class DeepEval(DeepEvalBackend):
             - nframes x natoms x dim_aparam.
             - natoms x dim_aparam. Then all frames are assumed to be provided with the same aparam.
             - dim_aparam. Then all frames and atoms are provided with the same aparam.
+        atomic_weight
+            The atomic weight for weighted averaging of atomic contributions.
+            The array can be of size :
+            - nframes x natoms. Different weights for each atom in each frame.
+            - nframes x natoms x k. Different weights for each atom in each frame with k dimensions.
+            Note: This parameter is currently ignored when spin is provided.
         **kwargs
             Other parameters
 
@@ -367,10 +373,14 @@ class DeepEval(DeepEvalBackend):
                 atom_types,
                 fparam,
                 aparam,
-                request_defs,
                 atomic_weight,
+                request_defs,
             )
         else:
+            if atomic_weight is not None:
+                raise ValueError(
+                    "atomic_weight is not supported when spin is provided. "
+                )
             out = self._eval_func(self._eval_model_spin, numb_test, natoms)(
                 coords,
                 cells,
@@ -479,8 +489,8 @@ class DeepEval(DeepEvalBackend):
         atom_types: np.ndarray,
         fparam: np.ndarray | None,
         aparam: np.ndarray | None,
+        atomic_weight: np.ndarray | None,
         request_defs: list[OutputVariableDef],
-        atomic_weight: Optional[np.ndarray] = None,
     ) -> tuple[np.ndarray, ...]:
         model = self.dp.to(DEVICE)
         prec = NP_PRECISION_DICT[RESERVED_PRECISION_DICT[GLOBAL_PT_FLOAT_PRECISION]]
@@ -523,6 +533,34 @@ class DeepEval(DeepEvalBackend):
         else:
             aparam_input = None
         if atomic_weight is not None:
+            # Validate atomic_weight shape
+            if atomic_weight.ndim == 1:
+                # (natoms,) - broadcast across frames
+                if atomic_weight.shape[0] != natoms:
+                    raise ValueError(
+                        f"atomic_weight shape {atomic_weight.shape} incompatible with number of atoms {natoms}"
+                    )
+                atomic_weight = np.tile(atomic_weight, (nframes, 1))
+            elif atomic_weight.ndim == 2:
+                # (nframes, natoms) or (natoms, k)
+                if atomic_weight.shape[0] == natoms and atomic_weight.shape[1] != nframes:
+                    # (natoms, k) - broadcast across frames
+                    atomic_weight = np.tile(atomic_weight, (nframes, 1, 1))
+                elif atomic_weight.shape[0] != nframes or atomic_weight.shape[1] != natoms:
+                    raise ValueError(
+                        f"atomic_weight shape {atomic_weight.shape} incompatible with nframes={nframes} and natoms={natoms}"
+                    )
+            elif atomic_weight.ndim == 3:
+                # (nframes, natoms, k)
+                if atomic_weight.shape[0] != nframes or atomic_weight.shape[1] != natoms:
+                    raise ValueError(
+                        f"atomic_weight shape {atomic_weight.shape} incompatible with nframes={nframes} and natoms={natoms}"
+                    )
+            else:
+                raise ValueError(
+                    f"atomic_weight must have 1, 2, or 3 dimensions, got {atomic_weight.ndim}"
+                )
+            
             atomic_weight_input = to_torch_tensor(
                 atomic_weight.reshape(nframes, natoms, -1)
             )
@@ -566,6 +604,7 @@ class DeepEval(DeepEvalBackend):
         fparam: np.ndarray | None,
         aparam: np.ndarray | None,
         request_defs: list[OutputVariableDef],
+        atomic_weight: Optional[np.ndarray] = None,
     ) -> tuple[np.ndarray, ...]:
         model = self.dp.to(DEVICE)
 
@@ -607,6 +646,40 @@ class DeepEval(DeepEvalBackend):
             )
         else:
             aparam_input = None
+        if atomic_weight is not None:
+            # Validate atomic_weight shape for spin model
+            if atomic_weight.ndim == 1:
+                # (natoms,) - broadcast across frames
+                if atomic_weight.shape[0] != natoms:
+                    raise ValueError(
+                        f"atomic_weight shape {atomic_weight.shape} incompatible with number of atoms {natoms}"
+                    )
+                atomic_weight = np.tile(atomic_weight, (nframes, 1))
+            elif atomic_weight.ndim == 2:
+                # (nframes, natoms) or (natoms, k)
+                if atomic_weight.shape[0] == natoms and atomic_weight.shape[1] != nframes:
+                    # (natoms, k) - broadcast across frames
+                    atomic_weight = np.tile(atomic_weight, (nframes, 1, 1))
+                elif atomic_weight.shape[0] != nframes or atomic_weight.shape[1] != natoms:
+                    raise ValueError(
+                        f"atomic_weight shape {atomic_weight.shape} incompatible with nframes={nframes} and natoms={natoms}"
+                    )
+            elif atomic_weight.ndim == 3:
+                # (nframes, natoms, k)
+                if atomic_weight.shape[0] != nframes or atomic_weight.shape[1] != natoms:
+                    raise ValueError(
+                        f"atomic_weight shape {atomic_weight.shape} incompatible with nframes={nframes} and natoms={natoms}"
+                    )
+            else:
+                raise ValueError(
+                    f"atomic_weight must have 1, 2, or 3 dimensions, got {atomic_weight.ndim}"
+                )
+            
+            atomic_weight_input = to_torch_tensor(
+                atomic_weight.reshape(nframes, natoms, -1)
+            )
+        else:
+            atomic_weight_input = None
 
         do_atomic_virial = any(
             x.category == OutputVariableCategory.DERV_C_REDU for x in request_defs
@@ -619,6 +692,7 @@ class DeepEval(DeepEvalBackend):
             do_atomic_virial=do_atomic_virial,
             fparam=fparam_input,
             aparam=aparam_input,
+            atomic_weight=atomic_weight_input,
         )
         if isinstance(batch_output, tuple):
             batch_output = batch_output[0]
