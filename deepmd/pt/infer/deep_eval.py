@@ -312,6 +312,7 @@ class DeepEval(DeepEvalBackend):
         atomic: bool = False,
         fparam: np.ndarray | None = None,
         aparam: np.ndarray | None = None,
+        atomic_weight: np.ndarray | None = None,
         **kwargs: Any,
     ) -> dict[str, np.ndarray]:
         """Evaluate the energy, force and virial by using this DP.
@@ -361,7 +362,13 @@ class DeepEval(DeepEvalBackend):
         request_defs = self._get_request_defs(atomic)
         if "spin" not in kwargs or kwargs["spin"] is None:
             out = self._eval_func(self._eval_model, numb_test, natoms)(
-                coords, cells, atom_types, fparam, aparam, request_defs
+                coords,
+                cells,
+                atom_types,
+                fparam,
+                aparam,
+                request_defs,
+                atomic_weight,
             )
         else:
             out = self._eval_func(self._eval_model_spin, numb_test, natoms)(
@@ -473,6 +480,7 @@ class DeepEval(DeepEvalBackend):
         fparam: np.ndarray | None,
         aparam: np.ndarray | None,
         request_defs: list[OutputVariableDef],
+        atomic_weight: Optional[np.ndarray] = None,
     ) -> tuple[np.ndarray, ...]:
         model = self.dp.to(DEVICE)
         prec = NP_PRECISION_DICT[RESERVED_PRECISION_DICT[GLOBAL_PT_FLOAT_PRECISION]]
@@ -514,6 +522,12 @@ class DeepEval(DeepEvalBackend):
             )
         else:
             aparam_input = None
+        if atomic_weight is not None:
+            atomic_weight_input = to_torch_tensor(
+                atomic_weight.reshape(nframes, natoms, -1)
+            )
+        else:
+            atomic_weight_input = None
         do_atomic_virial = any(
             x.category == OutputVariableCategory.DERV_C for x in request_defs
         )
@@ -524,6 +538,7 @@ class DeepEval(DeepEvalBackend):
             do_atomic_virial=do_atomic_virial,
             fparam=fparam_input,
             aparam=aparam_input,
+            atomic_weight=atomic_weight_input,
         )
         if isinstance(batch_output, tuple):
             batch_output = batch_output[0]

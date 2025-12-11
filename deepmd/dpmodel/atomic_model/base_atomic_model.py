@@ -156,6 +156,7 @@ class BaseAtomicModel(BaseAtomicModel_, NativeOP):
         mapping: Array | None = None,
         fparam: Array | None = None,
         aparam: Array | None = None,
+        atomic_weight: Array | None = None,
     ) -> dict[str, Array]:
         """Common interface for atomic inference.
 
@@ -177,6 +178,9 @@ class BaseAtomicModel(BaseAtomicModel_, NativeOP):
             frame parameters, shape: nf x dim_fparam
         aparam
             atomic parameter, shape: nf x nloc x dim_aparam
+        atomic_weight
+            atomic weights for scaling outputs, shape: nf x nloc x dim_aw
+            if provided, all output values will be multiplied by this weight.
 
         Returns
         -------
@@ -220,6 +224,11 @@ class BaseAtomicModel(BaseAtomicModel_, NativeOP):
             tmp_arr = ret_dict[kk].reshape([out_shape[0], out_shape[1], out_shape2])
             tmp_arr = xp.where(atom_mask[:, :, None], tmp_arr, xp.zeros_like(tmp_arr))
             ret_dict[kk] = xp.reshape(tmp_arr, out_shape)
+            if atomic_weight is not None:
+                _out_shape = ret_dict[kk].shape
+                ret_dict[kk] = ret_dict[kk] * atomic_weight.reshape(
+                    [_out_shape[0], _out_shape[1], -1]
+                )
         ret_dict["mask"] = xp.astype(atom_mask, xp.int32)
 
         return ret_dict
@@ -232,6 +241,7 @@ class BaseAtomicModel(BaseAtomicModel_, NativeOP):
         mapping: Array | None = None,
         fparam: Array | None = None,
         aparam: Array | None = None,
+        atomic_weight: Array | None = None,
     ) -> dict[str, Array]:
         return self.forward_common_atomic(
             extended_coord,
@@ -240,6 +250,7 @@ class BaseAtomicModel(BaseAtomicModel_, NativeOP):
             mapping=mapping,
             fparam=fparam,
             aparam=aparam,
+            atomic_weight=atomic_weight,
         )
 
     def serialize(self) -> dict:
