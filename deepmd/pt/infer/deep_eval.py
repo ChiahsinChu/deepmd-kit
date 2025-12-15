@@ -379,7 +379,7 @@ class DeepEval(DeepEvalBackend):
         else:
             if atomic_weight is not None:
                 raise ValueError(
-                    "atomic_weight is not supported when spin is provided. "
+                    "atomic_weight is not supported when spin is provided."
                 )
             out = self._eval_func(self._eval_model_spin, numb_test, natoms)(
                 coords,
@@ -533,43 +533,9 @@ class DeepEval(DeepEvalBackend):
         else:
             aparam_input = None
         if atomic_weight is not None:
-            # Validate atomic_weight shape
-            if atomic_weight.ndim == 1:
-                # (natoms,) - broadcast across frames
-                if atomic_weight.shape[0] != natoms:
-                    raise ValueError(
-                        f"atomic_weight shape {atomic_weight.shape} incompatible with number of atoms {natoms}"
-                    )
-                atomic_weight = np.tile(atomic_weight, (nframes, 1))
-            elif atomic_weight.ndim == 2:
-                # (nframes, natoms) or (natoms, k)
-                if (
-                    atomic_weight.shape[0] == natoms
-                    and atomic_weight.shape[1] != nframes
-                ):
-                    # (natoms, k) - broadcast across frames
-                    atomic_weight = np.tile(atomic_weight, (nframes, 1, 1))
-                elif (
-                    atomic_weight.shape[0] != nframes
-                    or atomic_weight.shape[1] != natoms
-                ):
-                    raise ValueError(
-                        f"atomic_weight shape {atomic_weight.shape} incompatible with nframes={nframes} and natoms={natoms}"
-                    )
-            elif atomic_weight.ndim == 3:
-                # (nframes, natoms, k)
-                if (
-                    atomic_weight.shape[0] != nframes
-                    or atomic_weight.shape[1] != natoms
-                ):
-                    raise ValueError(
-                        f"atomic_weight shape {atomic_weight.shape} incompatible with nframes={nframes} and natoms={natoms}"
-                    )
-            else:
-                raise ValueError(
-                    f"atomic_weight must have 1, 2, or 3 dimensions, got {atomic_weight.ndim}"
-                )
-
+            atomic_weight = self._validate_and_reshape_atomic_weight(
+                atomic_weight, nframes, natoms
+            )
             atomic_weight_input = to_torch_tensor(
                 atomic_weight.reshape(nframes, natoms, -1)
             )
@@ -613,7 +579,6 @@ class DeepEval(DeepEvalBackend):
         fparam: np.ndarray | None,
         aparam: np.ndarray | None,
         request_defs: list[OutputVariableDef],
-        atomic_weight: Optional[np.ndarray] = None,
     ) -> tuple[np.ndarray, ...]:
         model = self.dp.to(DEVICE)
 
@@ -655,49 +620,7 @@ class DeepEval(DeepEvalBackend):
             )
         else:
             aparam_input = None
-        if atomic_weight is not None:
-            # Validate atomic_weight shape for spin model
-            if atomic_weight.ndim == 1:
-                # (natoms,) - broadcast across frames
-                if atomic_weight.shape[0] != natoms:
-                    raise ValueError(
-                        f"atomic_weight shape {atomic_weight.shape} incompatible with number of atoms {natoms}"
-                    )
-                atomic_weight = np.tile(atomic_weight, (nframes, 1))
-            elif atomic_weight.ndim == 2:
-                # (nframes, natoms) or (natoms, k)
-                if (
-                    atomic_weight.shape[0] == natoms
-                    and atomic_weight.shape[1] != nframes
-                ):
-                    # (natoms, k) - broadcast across frames
-                    atomic_weight = np.tile(atomic_weight, (nframes, 1, 1))
-                elif (
-                    atomic_weight.shape[0] != nframes
-                    or atomic_weight.shape[1] != natoms
-                ):
-                    raise ValueError(
-                        f"atomic_weight shape {atomic_weight.shape} incompatible with nframes={nframes} and natoms={natoms}"
-                    )
-            elif atomic_weight.ndim == 3:
-                # (nframes, natoms, k)
-                if (
-                    atomic_weight.shape[0] != nframes
-                    or atomic_weight.shape[1] != natoms
-                ):
-                    raise ValueError(
-                        f"atomic_weight shape {atomic_weight.shape} incompatible with nframes={nframes} and natoms={natoms}"
-                    )
-            else:
-                raise ValueError(
-                    f"atomic_weight must have 1, 2, or 3 dimensions, got {atomic_weight.ndim}"
-                )
-
-            atomic_weight_input = to_torch_tensor(
-                atomic_weight.reshape(nframes, natoms, -1)
-            )
-        else:
-            atomic_weight_input = None
+        atomic_weight_input = None
 
         do_atomic_virial = any(
             x.category == OutputVariableCategory.DERV_C_REDU for x in request_defs
@@ -954,3 +877,60 @@ class DeepEval(DeepEvalBackend):
         fitting_net = model.eval_fitting_last_layer()
         model.set_eval_fitting_last_layer_hook(False)
         return to_numpy_array(fitting_net)
+
+    def _validate_and_reshape_atomic_weight(
+        self,
+        atomic_weight: np.ndarray,
+        nframes: int,
+        natoms: int,
+    ) -> np.ndarray:
+        """Validate and reshape atomic_weight to (nframes, natoms, k).
+
+        Parameters
+        ----------
+        atomic_weight : np.ndarray
+            Input atomic weights with various possible shapes
+        nframes : int
+            Number of frames
+        natoms : int
+            Number of atoms
+
+        Returns
+        -------
+        np.ndarray
+            Reshaped atomic_weight with shape (nframes, natoms, k)
+
+        Raises
+        ------
+        ValueError
+            If atomic_weight shape is incompatible
+        """
+        # Validate atomic_weight shape
+        if atomic_weight.ndim == 1:
+            # (natoms,) - broadcast across frames
+            if atomic_weight.shape[0] != natoms:
+                raise ValueError(
+                    f"atomic_weight shape {atomic_weight.shape} incompatible with number of atoms {natoms}"
+                )
+            atomic_weight = np.tile(atomic_weight, (nframes, 1))
+        elif atomic_weight.ndim == 2:
+            # (nframes, natoms) or (natoms, k)
+            if atomic_weight.shape[0] == natoms and atomic_weight.shape[1] != nframes:
+                # (natoms, k) - broadcast across frames
+                atomic_weight = np.tile(atomic_weight, (nframes, 1, 1))
+            elif atomic_weight.shape[0] != nframes or atomic_weight.shape[1] != natoms:
+                raise ValueError(
+                    f"atomic_weight shape {atomic_weight.shape} incompatible with nframes={nframes} and natoms={natoms}"
+                )
+        elif atomic_weight.ndim == 3:
+            # (nframes, natoms, k)
+            if atomic_weight.shape[0] != nframes or atomic_weight.shape[1] != natoms:
+                raise ValueError(
+                    f"atomic_weight shape {atomic_weight.shape} incompatible with nframes={nframes} and natoms={natoms}"
+                )
+        else:
+            raise ValueError(
+                f"atomic_weight must have 1, 2, or 3 dimensions, got {atomic_weight.ndim}"
+            )
+
+        return atomic_weight

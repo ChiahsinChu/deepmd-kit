@@ -68,7 +68,7 @@ def model_call_from_call_lower(
     fparam: Array | None = None,
     aparam: Array | None = None,
     do_atomic_virial: bool = False,
-    atomic_weight: Optional[np.ndarray] = None,
+    atomic_weight: Array | None = None,
 ) -> dict[str, Array]:
     """Return model prediction from lower interface.
 
@@ -231,7 +231,7 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
             fparam: Array | None = None,
             aparam: Array | None = None,
             do_atomic_virial: bool = False,
-            atomic_weight: Optional[np.ndarray] = None,
+            atomic_weight: Array | None = None,
         ) -> dict[str, Array]:
             """Return model prediction.
 
@@ -292,7 +292,7 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
             fparam: Array | None = None,
             aparam: Array | None = None,
             do_atomic_virial: bool = False,
-            atomic_weight: Optional[np.ndarray] = None,
+            atomic_weight: Array | None = None,
         ) -> dict[str, Array]:
             """Return model prediction. Lower interface that takes
             extended atomic coordinates and types, nlist, and mapping
@@ -359,7 +359,7 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
             fparam: Array | None = None,
             aparam: Array | None = None,
             do_atomic_virial: bool = False,
-            atomic_weight: Optional[np.ndarray] = None,
+            atomic_weight: Array | None = None,
         ) -> dict[str, Array]:
             atomic_ret = self.atomic_model.forward_common_atomic(
                 extended_coord,
@@ -387,7 +387,9 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
             fparam: Array | None = None,
             aparam: Array | None = None,
             atomic_weight: Array | None = None,
-        ) -> tuple[Array, Array, np.ndarray | None, np.ndarray | None, np.ndarray | None, str]:
+        ) -> tuple[
+            Array, Array, np.ndarray | None, np.ndarray | None, np.ndarray | None, str
+        ]:
             """Cast the input data to global float type."""
             input_prec = RESERVED_PRECISION_DICT[self.precision_dict[coord.dtype.name]]
             ###

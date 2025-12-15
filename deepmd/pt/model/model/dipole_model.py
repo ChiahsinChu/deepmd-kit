@@ -60,7 +60,7 @@ class DipoleModel(DPModelCommon, DPDipoleModel_):
         fparam: torch.Tensor | None = None,
         aparam: torch.Tensor | None = None,
         do_atomic_virial: bool = False,
-        atomic_weight: Optional[torch.Tensor] = None,
+        atomic_weight: torch.Tensor | None = None,
     ) -> dict[str, torch.Tensor]:
         model_ret = self.forward_common(
             coord,

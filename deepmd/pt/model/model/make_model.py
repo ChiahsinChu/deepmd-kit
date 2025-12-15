@@ -138,7 +138,7 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
             fparam: torch.Tensor | None = None,
             aparam: torch.Tensor | None = None,
             do_atomic_virial: bool = False,
-            atomic_weight: Optional[torch.Tensor] = None,
+            atomic_weight: torch.Tensor | None = None,
         ) -> dict[str, torch.Tensor]:
             """Return model prediction.
 
@@ -255,7 +255,7 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
             do_atomic_virial: bool = False,
             comm_dict: dict[str, torch.Tensor] | None = None,
             extra_nlist_sort: bool = False,
-            atomic_weight: Optional[torch.Tensor] = None,
+            atomic_weight: torch.Tensor | None = None,
         ) -> dict[str, torch.Tensor]:
             """Return model prediction. Lower interface that takes
             extended atomic coordinates and types, nlist, and mapping
@@ -642,7 +642,7 @@ def make_model(T_AtomicModel: type[BaseAtomicModel]) -> type:
             fparam: torch.Tensor | None = None,
             aparam: torch.Tensor | None = None,
             do_atomic_virial: bool = False,
-            atomic_weight: Optional[torch.Tensor] = None,
+            atomic_weight: torch.Tensor | None = None,
         ) -> dict[str, torch.Tensor]:
             # directly call the forward_common method when no specific transform rule
             return self.forward_common(

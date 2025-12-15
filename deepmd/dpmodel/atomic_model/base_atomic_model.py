@@ -226,6 +226,14 @@ class BaseAtomicModel(BaseAtomicModel_, NativeOP):
             ret_dict[kk] = xp.reshape(tmp_arr, out_shape)
             if atomic_weight is not None:
                 _out_shape = ret_dict[kk].shape
+                # Validate that atomic_weight.shape[2] matches the flattened trailing dimensions
+                # of the output to ensure correct broadcasting behavior
+                out_shape2 = math.prod(_out_shape[2:])
+                if atomic_weight.shape[2] != out_shape2:
+                    raise ValueError(
+                        f"atomic_weight shape {atomic_weight.shape} incompatible with output shape {_out_shape}. "
+                        f"Expected atomic_weight.shape[2] to be {out_shape2} for key '{kk}'"
+                    )
                 ret_dict[kk] = ret_dict[kk] * atomic_weight.reshape(
                     [_out_shape[0], _out_shape[1], -1]
                 )
