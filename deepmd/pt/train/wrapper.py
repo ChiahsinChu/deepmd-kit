@@ -189,6 +189,8 @@ class ModelWrapper(torch.nn.Module):
             model_pred = self.model[task_key](**input_dict)
             return model_pred, None, None
         else:
+            # remove atomic_weight in loss
+            input_dict.pop("atomic_weight", None)
             natoms = atype.shape[-1]
             model_pred, loss, more_loss = self.loss[task_key](
                 input_dict,
