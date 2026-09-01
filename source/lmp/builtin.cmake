@@ -21,12 +21,20 @@ target_sources(
           ${LAMMPS_SOURCE_DIR}/KSPACE/fft3d_wrap.cpp
           ${LAMMPS_SOURCE_DIR}/KSPACE/remap.cpp
           ${LAMMPS_SOURCE_DIR}/KSPACE/remap_wrap.cpp
+          # for pppm_electrode_dplr
+          ${LAMMPS_SOURCE_DIR}/ELECTRODE/pppm_electrode.cpp
+          ${LAMMPS_SOURCE_DIR}/ELECTRODE/boundary_correction.cpp
+          ${LAMMPS_SOURCE_DIR}/ELECTRODE/slab_dipole.cpp
+          ${LAMMPS_SOURCE_DIR}/ELECTRODE/slab_2d.cpp
+          ${LAMMPS_SOURCE_DIR}/ELECTRODE/wire_dipole.cpp
           ${LAMMPS_SOURCE_DIR}/EXTRA-FIX/fix_ttm.cpp # for ttm
 )
 target_link_libraries(lammps PUBLIC DeePMD::deepmd_c)
 target_include_directories(
-  lammps PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}
-                 ${LAMMPS_SOURCE_DIR}/KSPACE ${LAMMPS_SOURCE_DIR}/EXTRA-FIX)
+  lammps
+  PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_LIST_DIR}
+          ${LAMMPS_SOURCE_DIR}/KSPACE ${LAMMPS_SOURCE_DIR}/EXTRA-FIX
+          ${LAMMPS_SOURCE_DIR}/ELECTRODE)
 target_compile_definitions(
   lammps PRIVATE "LAMMPS_VERSION_NUMBER=${LAMMPS_VERSION_NUMBER}")
 

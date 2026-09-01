@@ -17,6 +17,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pppm_dplr.h"
+#include "pppm_electrode_dplr.h"
 #include "update.h"
 #include "variable.h"
 
@@ -626,6 +627,10 @@ void FixDPLR::post_force(int vflag) {
   }
 
   PPPMDPLR *pppm_dplr = (PPPMDPLR *)force->kspace_match("pppm/dplr", 1);
+#if LAMMPS_VERSION_NUMBER >= 20221222
+  PPPMElectrodeDPLR *pppm_electrode_dplr =
+      (PPPMElectrodeDPLR *)force->kspace_match("pppm/electrode/dplr", 1);
+#endif
   int nlocal = atom->nlocal;
   int nghost = atom->nghost;
   int nall = nlocal + nghost;
@@ -660,6 +665,15 @@ void FixDPLR::post_force(int vflag) {
         dfele[ii] += dfele_[ii];
       }
     }
+#if LAMMPS_VERSION_NUMBER >= 20221222
+    if (pppm_electrode_dplr) {
+      const vector<double> &dfele_(pppm_electrode_dplr->get_fele());
+      assert(dfele_.size() == nlocal * 3);
+      for (int ii = 0; ii < nlocal * 3; ++ii) {
+        dfele[ii] += dfele_[ii];
+      }
+    }
+#endif
     // revise force and virial according to efield
     double *q = atom->q;
     imageint *image = atom->image;

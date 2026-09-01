@@ -55,7 +55,13 @@ if(DEFINED LAMMPS_SOURCE_ROOT OR DEFINED LAMMPS_VERSION)
     ${LAMMPS_SOURCE_ROOT}/src/KSPACE/fft3d.cpp
     ${LAMMPS_SOURCE_ROOT}/src/KSPACE/fft3d_wrap.cpp
     ${LAMMPS_SOURCE_ROOT}/src/KSPACE/remap.cpp
-    ${LAMMPS_SOURCE_ROOT}/src/KSPACE/remap_wrap.cpp)
+    ${LAMMPS_SOURCE_ROOT}/src/KSPACE/remap_wrap.cpp
+    # for pppm_electrode_dplr
+    ${LAMMPS_SOURCE_ROOT}/src/ELECTRODE/pppm_electrode.cpp
+    ${LAMMPS_SOURCE_ROOT}/src/ELECTRODE/boundary_correction.cpp
+    ${LAMMPS_SOURCE_ROOT}/src/ELECTRODE/slab_dipole.cpp
+    ${LAMMPS_SOURCE_ROOT}/src/ELECTRODE/slab_2d.cpp
+    ${LAMMPS_SOURCE_ROOT}/src/ELECTRODE/wire_dipole.cpp)
   if(LAMMPS_VERSION_NUMBER GREATER 20210831)
     list(APPEND LMP_SRC ${LAMMPS_SOURCE_ROOT}/src/EXTRA-FIX/fix_ttm.cpp
     )# for ttm
@@ -86,7 +92,7 @@ if(DEFINED LAMMPS_SOURCE_ROOT OR DEFINED LAMMPS_VERSION)
     ${libname}
     PRIVATE ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/..
             ${LAMMPS_SOURCE_ROOT}/src/PLUGIN ${LAMMPS_SOURCE_ROOT}/src/KSPACE
-            ${LAMMPS_SOURCE_ROOT}/src)
+            ${LAMMPS_SOURCE_ROOT}/src/ELECTRODE ${LAMMPS_SOURCE_ROOT}/src)
   if(LAMMPS_VERSION_NUMBER GREATER 20210831)
     target_include_directories(
       ${libname} PRIVATE ${LAMMPS_SOURCE_ROOT}/src/EXTRA-FIX) # for ttm

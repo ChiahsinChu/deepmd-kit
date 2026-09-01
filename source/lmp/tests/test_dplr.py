@@ -420,6 +420,44 @@ def test_pair_deepmd_lr(lammps) -> None:
     lammps.run(1)
 
 
+def test_pair_deepmd_lr_electrode(lammps) -> None:
+    """pppm/electrode/dplr must reproduce pppm/dplr on a plain DPLR system.
+
+    Both stash the k-space force in `fele` for fix dplr to hand to the
+    DipoleChargeModifier instead of adding it into atom->f, and both drop the
+    Ewald self-energy from the global energy. With gewald and the mesh pinned,
+    PPPMElectrode's different grid and accuracy heuristics drop out too, so the
+    two styles must agree to round-off on the same reference numbers.
+    """
+    if not lammps.lmp.has_style("kspace", "pppm/electrode/dplr"):
+        pytest.skip("LAMMPS was built without kspace style pppm/electrode/dplr")
+    lammps.pair_style(f"deepmd {pb_file.resolve()}")
+    lammps.pair_coeff("* *")
+    lammps.bond_style("zero")
+    lammps.bond_coeff("*")
+    lammps.special_bonds("lj/coul 1 1 1 angle no")
+    lammps.kspace_style("pppm/electrode/dplr 1e-5")
+    lammps.kspace_modify(f"gewald {beta:.2f} diff ik mesh {mesh:d} {mesh:d} {mesh:d}")
+    lammps.fix(
+        f"0 all dplr model {pb_file.resolve()} type_associate 1 3 bond_type 1 pair_deepmd_index 0"
+    )
+    lammps.fix_modify("0 virial yes")
+    lammps.run(0)
+    for ii in range(8):
+        if lammps.atoms[ii].id > 6:
+            assert lammps.atoms[ii].position == pytest.approx(
+                expected_WC[lammps.atoms[ii].id - 7]
+            )
+    assert lammps.eval("elong") == pytest.approx(expected_e_kspace)
+    assert lammps.eval("pe") == pytest.approx(expected_e_lr)
+    for ii in range(8):
+        if lammps.atoms[ii].id <= 6:
+            assert lammps.atoms[ii].force == pytest.approx(
+                expected_f_lr[lammps.atoms[ii].id - 1]
+            )
+    lammps.run(1)
+
+
 def test_pair_deepmd_lr_run0(lammps2) -> None:
     lammps2.pair_style(f"deepmd {pb_file.resolve()}")
     lammps2.pair_coeff("* *")

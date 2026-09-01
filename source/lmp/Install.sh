@@ -39,6 +39,14 @@ if (test $1 = 1); then
 		echo "Must install EXTRA-FIX package with USER-DEEPMD package"
 		exit 1
 	fi
+	# pppm/electrode/dplr derives from the ELECTRODE package's PPPMElectrode.
+	# Note ELECTRODE itself only supports the CMake build, so this check makes
+	# the legacy make build unavailable here; use the ELECTRODE-free
+	# patch/202404-fix_dplr-a0 branch if you need it.
+	if (test ! -e ../pppm_electrode.cpp); then
+		echo "Must install ELECTRODE package with USER-DEEPMD package"
+		exit 1
+	fi
 fi
 
 # all package files with no dependencies

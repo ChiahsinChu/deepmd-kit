@@ -12,6 +12,9 @@
 #if LAMMPS_VERSION_NUMBER >= 20220328
 #include "pppm_dplr.h"
 #endif
+#if LAMMPS_VERSION_NUMBER >= 20221222
+#include "pppm_electrode_dplr.h"
+#endif
 
 using namespace LAMMPS_NS;
 
@@ -28,6 +31,12 @@ static Fix *fixdplr(LAMMPS *lmp, int narg, char **arg) {
 
 #if LAMMPS_VERSION_NUMBER >= 20220328
 static KSpace *pppmdplr(LAMMPS *lmp) { return new PPPMDPLR(lmp); }
+#endif
+
+#if LAMMPS_VERSION_NUMBER >= 20221222
+static KSpace *pppmelectrodedplr(LAMMPS *lmp) {
+  return new PPPMElectrodeDPLR(lmp);
+}
 #endif
 
 extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc) {
@@ -73,6 +82,15 @@ extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc) {
   plugin.info = "kspace pppm/dplr " STR_GIT_SUMM;
   plugin.author = "Han Wang";
   plugin.creator.v1 = (lammpsplugin_factory1 *)&pppmdplr;
+  (*register_plugin)(&plugin, lmp);
+#endif
+
+#if LAMMPS_VERSION_NUMBER >= 20221222
+  plugin.style = "kspace";
+  plugin.name = "pppm/electrode/dplr";
+  plugin.info = "kspace pppm/electrode/dplr " STR_GIT_SUMM;
+  plugin.author = "Jia-Xin Zhu";
+  plugin.creator.v1 = (lammpsplugin_factory1 *)&pppmelectrodedplr;
   (*register_plugin)(&plugin, lmp);
 #endif
 }
