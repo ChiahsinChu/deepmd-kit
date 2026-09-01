@@ -238,6 +238,9 @@ int FixDPLR::setmask() {
 #endif
   mask |= PRE_EXCHANGE;
   mask |= POST_NEIGHBOR;
+  // Modify::setup_post_neighbor() dispatches on MIN_POST_NEIGHBOR, not
+  // POST_NEIGHBOR, when whichflag == 2, so minimize needs both.
+  mask |= MIN_POST_NEIGHBOR;
   mask |= PRE_FORCE;
   mask |= POST_FORCE;
   mask |= MIN_PRE_EXCHANGE;
@@ -338,6 +341,19 @@ void FixDPLR::setup_post_neighbor() {
   }
 
   neighbor->build(1);
+
+  // The block above only collapses each Wannier centroid onto its host atom
+  // and re-migrates; it does not put the centroids where the model says they
+  // belong. Do that here, rather than in setup_pre_force(), so that fixes
+  // defined after this one already see the real centroid positions while they
+  // set themselves up -- fix electrode/conp builds its elastance matrix in its
+  // own setup_post_neighbor(), which runs after ours.
+  //
+  // Order matters: pre_force() reads pair_deepmd->list and calls
+  // get_valid_pairs(..., false), which is fatal if a bonded (atom, centroid)
+  // pair straddles two ranks. Both are only guaranteed after the collapse and
+  // the neighbor->build(1) above, so this call has to come last.
+  pre_force(0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -346,7 +362,9 @@ void FixDPLR::setup_pre_exchange() {}
 
 /* ---------------------------------------------------------------------- */
 
-void FixDPLR::setup_pre_force(int vflag) { pre_force(vflag); }
+// The setup-time centroid placement moved to setup_post_neighbor(), which
+// LAMMPS calls earlier -- before any other fix's setup_post_neighbor().
+void FixDPLR::setup_pre_force(int /*vflag*/) {}
 
 /* ---------------------------------------------------------------------- */
 
