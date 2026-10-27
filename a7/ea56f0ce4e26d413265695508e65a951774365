@@ -1,0 +1,23 @@
+source/tests/pt_expt/infer/test_deep_eval_dpa4c_tensor.py
+  s_c86867e77d4f46::t_6f75f0f98351d8 297-299,346-377
+  s_c86867e77d4f46::t_63c8a5898588a2 378-379
+deepmd/pt_expt/infer/deep_eval.py
+  s_c86867e77d4f46::t_d73232a25d0bde 109-121,2046,2230
+  s_c86867e77d4f46::t_de9c8298f9ef73 1275-1278
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a7ea56f0ce4e26d413265695508e65a951774365",
+  "prompts": {},
+  "sessions": {
+    "s_c86867e77d4f46": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "874d3491-5804-4a5b-83ff-aa5eaf041565",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zhu, Jia-Xin <j.zhu@fz-juelich.de>"
+    }
+  }
+}
