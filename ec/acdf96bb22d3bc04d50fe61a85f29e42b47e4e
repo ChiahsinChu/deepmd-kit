@@ -1,0 +1,43 @@
+deepmd/pt_expt/model/dipole_model.py
+  s_c86867e77d4f46::t_51b0d4fc7672ea 176,200-205
+  s_c86867e77d4f46::t_b103a4bbbe0e2f 33,41,43,45-48,52,54-58,73,78-81,88-92,125,130-135,177-199,206-225
+  s_c86867e77d4f46::t_e4a1a22dcba4ec 1-32,34-40,42,44,49-51,53,59-72,74-77,82-87,93-124,126-129,136-175
+deepmd/pt_expt/utils/serialization.py
+  s_c86867e77d4f46::t_1e374bff9256e8 1587,1594,2006,2009,2012,2015-2016
+  s_c86867e77d4f46::t_4351127ea1e37f 1275-1282
+  s_c86867e77d4f46::t_6914cc8f862475 1977-1979
+deepmd/pt_expt/entrypoints/main.py
+  s_c86867e77d4f46::t_1e374bff9256e8 583,586,612,615
+source/tests/pt_expt/infer/test_deep_eval_dpa4c_tensor.py
+  s_c86867e77d4f46::t_f5f47264c7a822 1-159,163-221
+  s_c86867e77d4f46::t_b701a050e0ef40 160-162
+deepmd/pt_expt/infer/deep_eval.py
+  s_c86867e77d4f46::t_c9a6914e698e05 2409-2411
+  s_c86867e77d4f46::t_2b6e0610a59989 738
+  s_c86867e77d4f46::t_277651d0bd201e 96-103,671,674-677,748-749,804-805,839-840,1996-1999,2001-2002,2553,2556-2559
+doc/model/dpa4c.md
+  s_c86867e77d4f46::t_2b6e0610a59989 236-248
+  s_c86867e77d4f46::t_eb5cff0dbfd6ed 249
+deepmd/pt_expt/model/graph_lower.py
+  s_c86867e77d4f46::t_1e374bff9256e8 103-124
+deepmd/pt_expt/model/polar_model.py
+  s_c86867e77d4f46::t_b103a4bbbe0e2f 33,41,43,45-48,52,54-58,67,72-75,82-86,105,110-115,157-179,185-204
+  s_c86867e77d4f46::t_51b0d4fc7672ea 156,180-184
+  s_c86867e77d4f46::t_4be3d1078e697b 1-32,34-40,42,44,49-51,53,59-66,68-71,76-81,87-104,106-109,116-155
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ecacdf96bb22d3bc04d50fe61a85f29e42b47e4e",
+  "prompts": {},
+  "sessions": {
+    "s_c86867e77d4f46": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "874d3491-5804-4a5b-83ff-aa5eaf041565",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zhu, Jia-Xin <j.zhu@fz-juelich.de>"
+    }
+  }
+}
