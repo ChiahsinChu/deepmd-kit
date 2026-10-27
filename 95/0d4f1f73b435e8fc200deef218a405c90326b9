@@ -41,6 +41,7 @@ deepmd/pt_expt/entrypoints/main.py
 deepmd/pt_expt/infer/deep_eval.py
   s_c86867e77d4f46::t_2b6e0610a59989 784
   s_c86867e77d4f46::t_277651d0bd201e 101-108,717,720-723,794-795,850-851,885-886,1983-1986,1988-1989
+  s_c86867e77d4f46::t_24ba7edb70d228 2146-2148,2159,2162-2165
 deepmd/pt_expt/model/dipole_model.py
   s_c86867e77d4f46::t_b103a4bbbe0e2f 177-225
   s_c86867e77d4f46::t_525d46295fcdac 176
