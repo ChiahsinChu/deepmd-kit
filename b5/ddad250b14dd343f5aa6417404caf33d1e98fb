@@ -1,0 +1,71 @@
+deepmd/pt_expt/model/make_model.py
+  s_c86867e77d4f46::t_a7ca0087c98176 811-816
+deepmd/dpmodel/descriptor/make_base_descriptor.py
+  s_c86867e77d4f46::t_c9f3f9d671c5c3 224-237
+deepmd/dpmodel/atomic_model/base_atomic_model.py
+  s_c86867e77d4f46::t_c9f3f9d671c5c3 203-212
+source/tests/pt_expt/model/test_dpa4c_tensor.py
+  s_c86867e77d4f46::t_b591bbdaced2e1 125-126
+  s_c86867e77d4f46::t_6815b2341be9fc 1-124,127-152
+deepmd/pt_expt/descriptor/dpa4c.py
+  s_c86867e77d4f46::t_934dac38997ed4 169,196-198,202,648-650,655-660
+source/tests/common/dpmodel/test_descriptor_dpa4c.py
+  s_c86867e77d4f46::t_5cdeddb9145d9d 2037-2133
+deepmd/dpmodel/atomic_model/linear_atomic_model.py
+  s_c86867e77d4f46::t_c9f3f9d671c5c3 339-342
+deepmd/pt_expt/model/graph_lower.py
+  s_c86867e77d4f46::t_a7ca0087c98176 36-64
+  s_c86867e77d4f46::t_1e374bff9256e8 103-124
+source/tests/pt_expt/descriptor/test_dpa4c.py
+  s_c86867e77d4f46::t_026f0999dc05b6 243
+  s_c86867e77d4f46::t_883b7d7ec7bec3 247-256
+  s_c86867e77d4f46::t_93b5e6d79517c0 223-242,244-246,257-263
+deepmd/pt_expt/train/training.py
+  s_c86867e77d4f46::t_09145f958cb11d 133,2472-2484,2649
+deepmd/dpmodel/descriptor/dpa4c.py
+  s_c86867e77d4f46::t_c19dceffd611e7 219-223,289,347,505,542-543,565,578-580,659,695-696,722,736-738,747,774-776,866,1276-1299,1910-1914,1939,2103-2104
+  s_c86867e77d4f46::t_c9f3f9d671c5c3 2175-2181
+doc/model/dpa4c.md
+  s_c86867e77d4f46::t_915611863852e0 205-214,222-230,236-244
+  s_c86867e77d4f46::t_2b6e0610a59989 245-257
+  s_c86867e77d4f46::t_eb5cff0dbfd6ed 258
+deepmd/dpmodel/atomic_model/dp_atomic_model.py
+  s_c86867e77d4f46::t_c9f3f9d671c5c3 216-219
+deepmd/utils/argcheck.py
+  s_c86867e77d4f46::t_915611863852e0 609-620
+source/tests/pt_expt/infer/test_deep_eval_dpa4c_tensor.py
+  s_c86867e77d4f46::t_f5f47264c7a822 1-159,163-221
+  s_c86867e77d4f46::t_b701a050e0ef40 160-162
+deepmd/pt_expt/entrypoints/main.py
+  s_c86867e77d4f46::t_1e374bff9256e8 583,586,612,615
+deepmd/pt_expt/infer/deep_eval.py
+  s_c86867e77d4f46::t_c9a6914e698e05 2409-2411
+  s_c86867e77d4f46::t_2b6e0610a59989 738
+  s_c86867e77d4f46::t_277651d0bd201e 96-103,671,674-677,748-749,804-805,839-840,1996-1999,2001-2002,2553,2556-2559
+deepmd/pt_expt/model/dipole_model.py
+  s_c86867e77d4f46::t_b103a4bbbe0e2f 177-225
+  s_c86867e77d4f46::t_525d46295fcdac 176
+deepmd/pt_expt/model/polar_model.py
+  s_c86867e77d4f46::t_b103a4bbbe0e2f 157-204
+  s_c86867e77d4f46::t_d619d1fc3ce9fb 156
+deepmd/pt_expt/utils/serialization.py
+  s_c86867e77d4f46::t_6914cc8f862475 1977-1979
+  s_c86867e77d4f46::t_1e374bff9256e8 1587,1594,2006,2009,2012,2015-2016
+  s_c86867e77d4f46::t_4351127ea1e37f 1275-1282
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b5ddad250b14dd343f5aa6417404caf33d1e98fb",
+  "prompts": {},
+  "sessions": {
+    "s_c86867e77d4f46": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "874d3491-5804-4a5b-83ff-aa5eaf041565",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zhu, Jia-Xin <j.zhu@fz-juelich.de>"
+    }
+  }
+}
