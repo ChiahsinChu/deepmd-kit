@@ -1,0 +1,33 @@
+deepmd/pt_expt/utils/serialization.py
+  s_c86867e77d4f46::t_d6104edfd69454 2038-2046,2212
+  s_c86867e77d4f46::t_c2b765f534e37e 1988-1990
+deepmd/pt_expt/model/dos_model.py
+  s_c86867e77d4f46::t_054bfdea463211 40-43
+source/tests/pt_expt/infer/test_deep_eval_dpa4c_tensor.py
+  s_c86867e77d4f46::t_217d833751cae3 2,4-9,52,72,196,214-231,236-242,246-261,276-277,281-284,287-334
+  s_c86867e77d4f46::t_3f5350618a362a 232-235,243-245,262-275,285-286
+  s_c86867e77d4f46::t_054bfdea463211 278-280
+deepmd/pt_expt/infer/deep_eval.py
+  s_c86867e77d4f46::t_3f5350618a362a 1292-1295
+  s_c86867e77d4f46::t_955886bc357268 118-158,2032-2038
+deepmd/pt_expt/model/graph_lower.py
+  s_c86867e77d4f46::t_b04086aed33ce1 110-111
+doc/model/dpa4c.md
+  s_c86867e77d4f46::t_58b793ed918a64 215-221,231-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e0beae52c20c677af2b44e560da99a2dc62970c1",
+  "prompts": {},
+  "sessions": {
+    "s_c86867e77d4f46": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "874d3491-5804-4a5b-83ff-aa5eaf041565",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Zhu, Jia-Xin <j.zhu@fz-juelich.de>"
+    }
+  }
+}
